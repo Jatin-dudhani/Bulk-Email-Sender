@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .animated-gradient {
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient 5s ease infinite;
+  }
+
+  @keyframes mainGradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .main-animated-gradient {
+    background: linear-gradient(-45deg, #6366f1, #3b82f6, #06b6d4, #14b8a6);
+    background-size: 400% 400%;
+    animation: mainGradient 15s ease infinite;
+  }
+
+  @keyframes headerGradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .header-animated-gradient {
+    background: linear-gradient(-45deg, #4f46e5, #3b82f6, #0ea5e9, #0d9488);
+    background-size: 200% 200%;
+    animation: headerGradient 10s ease infinite;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }

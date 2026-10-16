@@ -3,24 +3,37 @@ const mongoose = require('mongoose');
 const emailListSchema = new mongoose.Schema({
   userId: {
     type: String,
-    required: true
+    required: true,
+    index: true,
   },
   listName: {
     type: String,
-    required: true
+    required: true,
+  },
+  description: {
+    type: String,
+    default: '',
   },
   emails: [{
-    type: String
+    type: String,
   }],
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
   senderEmail: {
     type: String,
-    required: true,
-    verified: Boolean
-  }
+    default: null,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+emailListSchema.pre('save', function (next) {
+  this.updatedAt = new Date();
+  next();
 });
 
 module.exports = mongoose.model('EmailList', emailListSchema);

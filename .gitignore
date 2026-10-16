@@ -1,8 +1,46 @@
+# Dependencies
+node_modules/
+*/node_modules/
 
+# Environment Variables & Secrets (CRITICAL)
+.env
+.env.*
+!.env.example
 backend/.env
-/backend/node_modules
-/frontend/node_modules
-frontend/public/robots.txt
-/frontend/build
+backend/.env.*
+!backend/.env.example
 frontend/.env
-backend/config/bulk-email-5c174-firebase-adminsdk-l7wjc-2abd0cd92d.json
+frontend/.env.*
+!frontend/.env.example
+
+# Service Account Keys & Certificates
+*.pem
+*.key
+*.cert
+*.crt
+*serviceAccount*.json
+*firebase-admin*.json
+backend/config/*.json
+!backend/config/README.md
+
+# Production Builds
+frontend/build/
+dist/
+
+# Firebase & Deployment Cache
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+
+# Logs & Runtime
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+frontend/public/robots.txt

@@ -4,7 +4,7 @@ import Body from './Body';
 
 const Home = () => {
     return (
-        <div className='min-h-screen main-animated-gradient'>
+        <div className='min-h-screen bg-[#090d16]'>
             <Header />
             <Body/>
     </div>

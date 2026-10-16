@@ -3,9 +3,14 @@
   "private": true,
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"npm run start --prefix frontend\"",
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"PORT=3001 npm run start --prefix frontend\"",
     "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run start --prefix frontend",
+    "dev:frontend": "PORT=3001 npm run start --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "node backend/server.js",
+    "deploy:hosting": "npm run build:frontend && npx -y firebase-tools@latest deploy --only hosting",
+    "deploy": "npm run deploy:hosting",
     "check-setup": "node scripts/check-setup.js"
   },
   "devDependencies": {

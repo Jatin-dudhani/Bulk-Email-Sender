@@ -4,6 +4,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Header from "./Header";
 import { app } from "../utils/firebase";
 import { API_ENDPOINTS, getBaseUrl } from "../utils/constants";
+import { credentialStorage } from "../utils/credentialStorage";
 import {
   FiMail,
   FiKey,
@@ -61,7 +62,7 @@ const EmailSettings = () => {
     const loadCredentialsForUser = (userEmail, userUid) => {
       const scope = (userUid || userEmail || "guest").replace(/[^a-zA-Z0-9]/g, "_");
       const savedEmail = localStorage.getItem(`bulk_email_sender_email_${scope}`);
-      const savedPass = localStorage.getItem(`bulk_email_app_pass_${scope}`);
+      const savedPass = credentialStorage.get(scope);
 
       setSenderEmail(savedEmail || userEmail || "");
       setAppPassword(savedPass || "");
@@ -113,7 +114,7 @@ const EmailSettings = () => {
     }
     const scope = getUserScopeKey();
     localStorage.setItem(`bulk_email_sender_email_${scope}`, senderEmail.trim());
-    localStorage.setItem(`bulk_email_app_pass_${scope}`, appPassword.trim());
+    credentialStorage.save(scope, appPassword.trim());
     setIsSaved(true);
     setStatus({ type: "success", message: "Credentials safely saved for your account!" });
     setTimeout(() => setIsSaved(false), 3000);
@@ -141,7 +142,7 @@ const EmailSettings = () => {
         });
         const scope = getUserScopeKey();
         localStorage.setItem(`bulk_email_sender_email_${scope}`, senderEmail.trim());
-        localStorage.setItem(`bulk_email_app_pass_${scope}`, appPassword.trim());
+        credentialStorage.save(scope, appPassword.trim());
       }
     } catch (error) {
       setStatus({

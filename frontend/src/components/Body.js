@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { app } from "../utils/firebase";
 import { API_ENDPOINTS, getBaseUrl } from "../utils/constants";
+import { credentialStorage } from "../utils/credentialStorage";
 import {
   FiSend,
   FiUpload,
@@ -176,7 +177,7 @@ const Body = () => {
     const loadCredentialsForUser = (userEmail, userUid) => {
       const scope = (userUid || userEmail || "guest").replace(/[^a-zA-Z0-9]/g, "_");
       const savedEmail = localStorage.getItem(`bulk_email_sender_email_${scope}`);
-      const savedPass = localStorage.getItem(`bulk_email_app_pass_${scope}`);
+      const savedPass = credentialStorage.get(scope);
 
       // Default sender email is the currently logged-in user's own email
       setSenderEmail(savedEmail || userEmail || "");
@@ -553,7 +554,7 @@ const Body = () => {
     if (rememberCredentials) {
       const scope = getUserScopeKey();
       localStorage.setItem(`bulk_email_sender_email_${scope}`, senderEmail.trim());
-      localStorage.setItem(`bulk_email_app_pass_${scope}`, appPassword.trim());
+      credentialStorage.save(scope, appPassword.trim());
     }
 
     setIsSending(true);

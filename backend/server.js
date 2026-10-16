@@ -31,7 +31,15 @@ const MAIN_ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.MAIN_ADMIN_EMAIL
 // Security HTTP Headers with Helmet
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Maintain compatibility with SSE & dynamic inline assets
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: ["'self'", "https://*.firebaseio.com", "https://*.googleapis.com", "*"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
   })
 );
@@ -62,11 +70,30 @@ const corsOrigins = process.env.CORS_ORIGINS
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin or matching list
-      if (!origin || corsOrigins.includes(origin) || origin.startsWith("http://localhost:") || origin.includes("web.app") || origin.includes("firebaseapp.com")) {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) {
         return callback(null, true);
       }
-      return callback(null, true); // Permissive with credentials
+      if (corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      try {
+        const parsed = new URL(origin);
+        const host = parsed.hostname;
+        if (
+          host === "localhost" ||
+          host === "127.0.0.1" ||
+          host === "bulk-email-6498b.web.app" ||
+          host === "bulk-email-6498b.firebaseapp.com" ||
+          host.endsWith(".web.app") ||
+          host.endsWith(".firebaseapp.com")
+        ) {
+          return callback(null, true);
+        }
+      } catch (err) {
+        // Invalid origin format
+      }
+      return callback(new Error("Blocked by CORS policy"));
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
@@ -118,8 +145,8 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Apply general API rate limiter
-app.use("/api/", apiLimiter);
+// Apply general API rate limiter across all routes
+app.use(apiLimiter);
 
 // Active SSE client connections map: sessionId -> Set of res objects
 const sseClients = new Map();
@@ -214,8 +241,19 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-// RFC-compliant email regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Strict ReDoS-safe email validation without exponential backtracking
+function isValidEmail(email) {
+  if (typeof email !== "string" || email.length > 254) return false;
+  if (/[\r\n]/.test(email)) return false;
+  const atIndex = email.indexOf("@");
+  if (atIndex <= 0 || atIndex === email.length - 1) return false;
+  if (email.indexOf("@", atIndex + 1) !== -1) return false;
+  const local = email.slice(0, atIndex);
+  const domain = email.slice(atIndex + 1);
+  if (local.length > 64 || domain.length > 255) return false;
+  if (!domain.includes(".") || domain.startsWith(".") || domain.endsWith(".")) return false;
+  return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+$/.test(local) && /^[a-zA-Z0-9.-]+$/.test(domain);
+}
 
 // -------------------------------------------------------------
 // Verify Sender / SMTP Connection
@@ -236,7 +274,7 @@ app.post("/verify-sender", sendMailLimiter, async (req, res) => {
     });
   }
 
-  if (!EMAIL_REGEX.test(emailToTest) || /[\r\n]/.test(emailToTest)) {
+  if (!isValidEmail(emailToTest)) {
     return res.status(400).json({
       success: false,
       error: "Invalid email format. Please provide a valid email address.",
@@ -303,7 +341,7 @@ app.post("/api/test-email", sendMailLimiter, async (req, res) => {
     return res.status(400).json({ success: false, error: "Sender email is required." });
   }
 
-  if (!EMAIL_REGEX.test(fromEmail) || !EMAIL_REGEX.test(toEmail) || /[\r\n]/.test(fromEmail) || /[\r\n]/.test(toEmail)) {
+  if (!isValidEmail(fromEmail) || !isValidEmail(toEmail)) {
     return res.status(400).json({ success: false, error: "Invalid email address format." });
   }
 
@@ -445,7 +483,7 @@ app.post("/send-emails", sendMailLimiter, upload.array("attachments"), async (re
     });
   }
 
-  if (!EMAIL_REGEX.test(fromEmail)) {
+  if (!isValidEmail(fromEmail)) {
     return res.status(400).json({
       error: "Invalid sender email address format.",
     });
@@ -474,7 +512,8 @@ app.post("/send-emails", sendMailLimiter, upload.array("attachments"), async (re
     details: [],
   };
 
-  const throttleDelay = Math.max(0, parseInt(delayMs, 10) || 150);
+  const parsedDelay = parseInt(delayMs, 10);
+  const throttleDelay = Math.min(Math.max(Number.isFinite(parsedDelay) ? parsedDelay : 150, 0), 2000);
 
   // Send emails sequentially to avoid rate limits and permit progress streaming
   for (let i = 0; i < recipients.length; i++) {
@@ -483,7 +522,7 @@ app.post("/send-emails", sendMailLimiter, upload.array("attachments"), async (re
     const name = (recipient.name || "").trim() || extractNameFromEmail(email);
 
     // Validate recipient format
-    if (!email || !EMAIL_REGEX.test(email) || /[\r\n]/.test(email)) {
+    if (!isValidEmail(email)) {
       results.failed++;
       results.details.push({ email, name, status: "failed", error: "Invalid email address format" });
       broadcastProgress(sessionId, {
@@ -524,7 +563,7 @@ app.post("/send-emails", sendMailLimiter, upload.array("attachments"), async (re
         percent: Math.round(((i + 1) / recipients.length) * 100),
       });
     } catch (err) {
-      console.error(`Failed to send to ${email}:`, err.message);
+      console.error("Failed to send to recipient %s: %s", email, err.message);
       results.failed++;
       results.details.push({ email, name, status: "failed", error: err.message });
 
@@ -666,7 +705,7 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
   }
 });
 
-app.get("/authorized-users", requireAdminAuth, async (req, res) => {
+app.get("/authorized-users", authLimiter, requireAdminAuth, async (req, res) => {
   if (!isFirebaseConfigured()) {
     // In dev mode without Firebase credentials, return demo user list
     return res.json({
@@ -695,7 +734,7 @@ app.get("/authorized-users", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.post("/grant-access", requireAdminAuth, async (req, res) => {
+app.post("/grant-access", authLimiter, requireAdminAuth, async (req, res) => {
   const { userEmailToGrant } = req.body;
 
   if (!userEmailToGrant) {
@@ -725,7 +764,7 @@ app.post("/grant-access", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.post("/revoke-access", requireAdminAuth, async (req, res) => {
+app.post("/revoke-access", authLimiter, requireAdminAuth, async (req, res) => {
   const { userEmailToRevoke } = req.body;
 
   if (!userEmailToRevoke) {
@@ -752,7 +791,7 @@ app.post("/revoke-access", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.post("/toggle-admin", requireAdminAuth, async (req, res) => {
+app.post("/toggle-admin", authLimiter, requireAdminAuth, async (req, res) => {
   const { targetUserEmail } = req.body;
 
   if (!targetUserEmail) {
@@ -786,7 +825,7 @@ app.post("/toggle-admin", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.post("/setup-admin", requireAdminAuth, async (req, res) => {
+app.post("/setup-admin", authLimiter, requireAdminAuth, async (req, res) => {
   const targetEmail = req.body.email || MAIN_ADMIN_EMAIL;
   const uid = req.body.uid;
 

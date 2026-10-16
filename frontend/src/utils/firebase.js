@@ -6,15 +6,12 @@ export const SUPER_ADMIN_EMAIL =
 
 // Check if valid Firebase credentials are provided
 export const isFirebaseConfigured = Boolean(
-  (process.env.REACT_APP_FIREBASE_API_KEY &&
-    !process.env.REACT_APP_FIREBASE_API_KEY.includes("your_")) ||
-    true // Live credentials embedded
+  process.env.REACT_APP_FIREBASE_API_KEY &&
+    !process.env.REACT_APP_FIREBASE_API_KEY.includes("your_")
 );
 
 const firebaseConfig = {
-  apiKey:
-    process.env.REACT_APP_FIREBASE_API_KEY ||
-    "AIzaSyCqXBbn8230EHFcQpQ5VAvA0fUoc0aMKnw",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "",
   authDomain:
     process.env.REACT_APP_FIREBASE_AUTH_DOMAIN ||
     "bulk-email-6498b.firebaseapp.com",
@@ -25,16 +22,15 @@ const firebaseConfig = {
     "bulk-email-6498b.firebasestorage.app",
   messagingSenderId:
     process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "53018041762",
-  appId:
-    process.env.REACT_APP_FIREBASE_APP_ID ||
-    "1:53018041762:web:dc7342839ec48a2b7826fb",
-  measurementId:
-    process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-QSSKNY1M53",
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || "",
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "",
 };
 
 let appInstance = null;
 try {
-  appInstance = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  if (firebaseConfig.apiKey) {
+    appInstance = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  }
 } catch (e) {
   console.warn("Firebase initialization notice:", e.message);
 }

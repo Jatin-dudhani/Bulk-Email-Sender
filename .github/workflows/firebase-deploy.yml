@@ -1,0 +1,58 @@
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main          # Deploy on every push to main
+  pull_request:
+    branches:
+      - main          # Preview deploy on PRs targeting main
+
+jobs:
+  build_and_deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      # 3. Install frontend dependencies
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      # 4. Build the React frontend
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+        env:
+          CI: false          # Prevents warnings from being treated as errors
+
+      # 5a. Deploy to Firebase Hosting (on push to main)
+      - name: Deploy to Firebase Hosting (Production)
+        if: github.event_name == 'push'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: bulk-email-6498b
+          channelId: live
+
+      # 5b. Deploy preview channel (on Pull Requests)
+      - name: Deploy Preview to Firebase Hosting (PR)
+        if: github.event_name == 'pull_request'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: bulk-email-6498b

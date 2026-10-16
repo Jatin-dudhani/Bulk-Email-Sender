@@ -1,5 +1,12 @@
 # Bulk Email Studio — Modern Mass Email Dispatcher
 
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-bulk--email--6498b.web.app-blue?style=for-the-badge&logo=googlechrome&logoColor=white)](https://bulk-email-6498b.web.app)
+[![Firebase Deployment](https://github.com/Jatin-dudhani/Bulk-Email-Sender/actions/workflows/firebase-deploy.yml/badge.svg)](https://github.com/Jatin-dudhani/Bulk-Email-Sender/actions/workflows/firebase-deploy.yml)
+[![Firebase Hosting](https://img.shields.io/badge/Hosted_on-Firebase-FFA000?style=flat&logo=firebase&logoColor=white)](https://bulk-email-6498b.web.app)
+
+> 🚀 **Live Production URL:** [https://bulk-email-6498b.web.app](https://bulk-email-6498b.web.app)  
+> 🔗 **Alternative Mirror:** [https://bulk-email-6498b.firebaseapp.com](https://bulk-email-6498b.firebaseapp.com)
+
 A high-performance bulk email delivery studio built with React, Node.js, Express, Nodemailer, and MongoDB. Supports personalized mass emailing, audience segmentation, CSV/Excel ingestion, dynamic live preview, anti-spam throttling, and real-time delivery reporting.
 
 ---

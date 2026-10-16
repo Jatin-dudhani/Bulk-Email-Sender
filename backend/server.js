@@ -512,8 +512,11 @@ app.post("/send-emails", sendMailLimiter, upload.array("attachments"), async (re
     details: [],
   };
 
-  const parsedDelay = parseInt(delayMs, 10);
-  const throttleDelay = Math.min(Math.max(Number.isFinite(parsedDelay) ? parsedDelay : 150, 0), 2000);
+  const parsedDelay = Number(delayMs);
+  if (!Number.isInteger(parsedDelay) || parsedDelay < 0 || parsedDelay > 1000) {
+    return res.status(400).json({ error: "Invalid delayMs. Must be an integer between 0 and 1000." });
+  }
+  const throttleDelay = parsedDelay;
 
   // Send emails sequentially to avoid rate limits and permit progress streaming
   for (let i = 0; i < recipients.length; i++) {

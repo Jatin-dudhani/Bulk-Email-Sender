@@ -1,106 +1,89 @@
-# Bulk Email Studio — Modern Mass Email Dispatcher
+# Bulk Email Sender
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-bulk--email--6498b.web.app-blue?style=for-the-badge&logo=googlechrome&logoColor=white)](https://bulk-email-6498b.web.app)
-[![Firebase Deployment](https://github.com/Jatin-dudhani/Bulk-Email-Sender/actions/workflows/firebase-deploy.yml/badge.svg)](https://github.com/Jatin-dudhani/Bulk-Email-Sender/actions/workflows/firebase-deploy.yml)
-[![Firebase Hosting](https://img.shields.io/badge/Hosted_on-Firebase-FFA000?style=flat&logo=firebase&logoColor=white)](https://bulk-email-6498b.web.app)
+A bulk email sender for sending personalized mass emails with contact import, template-based composition, deduplication, SMTP delivery, and progress tracking.
 
-> 🚀 **Live Production URL:** [https://bulk-email-6498b.web.app](https://bulk-email-6498b.web.app)  
-> 🔗 **Alternative Mirror:** [https://bulk-email-6498b.firebaseapp.com](https://bulk-email-6498b.firebaseapp.com)
+This repository is primarily JavaScript-based, with the majority of the code written in JavaScript (97.7%), followed by CSS (1.4%) and a small percentage of other files (0.9%).
 
-A high-performance bulk email delivery studio built with React, Node.js, Express, Nodemailer, and MongoDB. Supports personalized mass emailing, audience segmentation, CSV/Excel ingestion, dynamic live preview, anti-spam throttling, and real-time delivery reporting.
+## Overview
 
----
+Bulk Email Sender is a full-stack web application that helps users:
 
-## ✨ Features
+- import contact lists from CSV or Excel files
+- clean and deduplicate recipients
+- compose emails with reusable templates and personalization tags
+- send test emails before a campaign
+- monitor delivery progress and export campaign reports
+- connect to Gmail SMTP or production-ready email providers
 
-- **Multi-Source Recipient Ingestion:**
-  - 📁 **Spreadsheet Import:** Direct `.xlsx`, `.xls`, and `.csv` parsing with automatic column mapping.
-  - 📋 **Saved Audience Lists:** Segment and manage contacts in reusable lists.
-  - ✍️ **Manual / Bulk Paste:** Paste emails in standard or `Name <email@domain.com>` formats.
-- **Recipient Deduplication & Cleaner:**
-  - 1-click duplicate removal.
-  - 1-click invalid email address pruning.
-- **Rich Email Composer & Templates:**
-  - 5 pre-built professional email templates (Product Announcement, Newsletter, Welcome Onboarding, Outreach, Custom).
-  - Quick dynamic tags (`{name}`, `{email}`).
-  - **Live Preview Mode** with real-time variable replacement.
-- **Anti-Spam & Delivery Protection:**
-  - Adjustable throttling delay slider (50ms – 1.5s per message) to prevent Gmail rate limits and spam flagging.
-  - Single-recipient test button ("Send Test to Self") to check rendering before full launch.
-- **Real-Time Progress & Reporting:**
-  - Server-Sent Events (SSE) live progress bar and recipient ticker.
-  - Detailed sent vs. failed delivery breakdown.
-  - 1-click **Excel / CSV Report Export**.
-- **Settings & SMTP Connection Hub:**
-  - Interactive Gmail SMTP verification tester.
-  - Step-by-step Google App Password guide.
-- **Zero-Config Resilience:**
-  - Automatically runs with in-memory storage fallback if MongoDB Atlas is not yet configured.
-  - Development / Demo Mode enables testing all features without Google OAuth setup.
-  - Automatic port resolution (Backend: 5001, avoiding macOS AirPlay port 5000 collisions; Frontend: 3001).
+## Tech Stack
 
----
+- Frontend: React
+- Backend: Node.js + Express
+- Email delivery: Nodemailer
+- Data storage: MongoDB (with in-memory fallback)
+- Hosting: Firebase
+- UI styling: CSS
 
-## 🚀 Quick Start
+## Features
 
-### 1. Install Dependencies
+- Spreadsheet and manual contact ingestion
+- Duplicate and invalid email cleanup
+- Email template library and live preview
+- Dynamic tags such as `{name}` and `{email}`
+- Send test email to self before mass campaigns
+- configurable throttling to reduce spam or delivery issues
+- real-time progress updates and delivery summary
+- CSV/Excel report export
+- admin controls and role-based access
+
+## Quick Start
+
+### Install dependencies
 
 ```bash
 npm run install:all
 ```
 
-### 2. Verify Setup
-
-Run the diagnostic assistant to inspect your environment:
+### Verify environment
 
 ```bash
 npm run check-setup
 ```
 
-### 3. Run Locally
-
-Start both backend and frontend concurrently:
+### Run locally
 
 ```bash
 npm run dev
 ```
 
-- **Frontend:** http://localhost:3001
-- **Backend:** http://localhost:5001 (Health check: http://localhost:5001/api/status)
+Then open:
 
-Or run individually:
+- Frontend: http://localhost:3001
+- Backend: http://localhost:5001
+
+You can also run each service independently:
 
 ```bash
 npm run dev:backend
 npm run dev:frontend
 ```
 
----
+## Configuration
 
-## ⚙️ Configuration (Optional)
+The app can run in local/in-memory mode by default. For production email sending, configure your backend environment variables in `backend/.env`.
 
-The application functions immediately in local/in-memory mode. To connect live production services:
+Typical settings include:
 
-### Backend (`backend/.env`)
+- `PORT`
+- `MONGO_URI`
+- `EMAIL_USER`
+- `EMAIL_PASS`
+- `FIREBASE_SERVICE_ACCOUNT_PATH`
 
-| Variable | Description |
-|----------|-------------|
-| `PORT` | Server port (default: `5001`) |
-| `MONGO_URI` | MongoDB Atlas connection string (e.g. `mongodb+srv://...`) |
-| `EMAIL_USER` | Default sender Gmail address |
-| `EMAIL_PASS` | 16-character Google [App Password](https://myaccount.google.com/apppasswords) |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to Firebase Admin service account JSON |
+## Project Status
 
-### Frontend (`frontend/.env`)
+This project is a JavaScript-heavy application focused on bulk email operations, audience management, and campaign delivery automation.
 
-| Variable | Description |
-|----------|-------------|
-| `REACT_APP_API_URL` | Backend URL (default: `http://localhost:5001`) |
-| `REACT_APP_FIREBASE_*` | Optional Firebase Web client credentials |
+## License
 
----
-
-## 🛡️ Admin & Permissions
-
-- The default superadmin email is configurable in `backend/server.js` or via `ADMIN_EMAIL` in `backend/.env`.
-- Superadmins can grant access, assign roles, and revoke permissions through the **Admin Panel** (`/admin`).
+This project does not currently declare a specific license in the repository metadata.

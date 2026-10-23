@@ -7,7 +7,7 @@
     "cra-template": "1.2.0",
     "firebase": "^10.0.0",
     "firebaseui": "^6.1.0",
-    "react": "^19.0.0",
+    "react": "^19.3.1",
     "react-dom": "^19.0.0",
     "react-icons": "^5.4.0",
     "react-router-dom": "^7.1.1",

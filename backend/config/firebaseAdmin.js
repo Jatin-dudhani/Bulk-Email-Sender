@@ -1,11 +1,11 @@
-const admin = require("firebase-admin");
+const { cert, getApps, initializeApp } = require("firebase-admin/app");
 const fs = require("fs");
 const path = require("path");
 
 let isConfigured = false;
 
 function initFirebaseAdmin() {
-  if (admin.apps.length) {
+  if (getApps().length) {
     isConfigured = true;
     return true;
   }
@@ -19,8 +19,8 @@ function initFirebaseAdmin() {
     if (fs.existsSync(resolved)) {
       try {
         const serviceAccount = require(resolved);
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
+        initializeApp({
+          credential: cert(serviceAccount),
         });
         console.log("✅ [Firebase] Firebase Admin initialized from service account file");
         isConfigured = true;
@@ -38,8 +38,8 @@ function initFirebaseAdmin() {
 
   if (process.env.FIREBASE_PROJECT_ID && privateKey && clientEmail) {
     try {
-      admin.initializeApp({
-        credential: admin.credential.cert({
+      initializeApp({
+        credential: cert({
           type: process.env.FIREBASE_TYPE || "service_account",
           project_id: process.env.FIREBASE_PROJECT_ID,
           private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
@@ -75,6 +75,6 @@ function initFirebaseAdmin() {
   return false;
 }
 
-const isFirebaseConfigured = () => isConfigured && admin.apps.length > 0;
+const isFirebaseConfigured = () => isConfigured && getApps().length > 0;
 
 module.exports = { initFirebaseAdmin, isFirebaseConfigured };

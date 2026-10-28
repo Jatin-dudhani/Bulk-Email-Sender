@@ -1,4 +1,5 @@
 // Node 26+ compatibility shim for buffer-equal-constant-time / jwa
+const { getAuth } = require("firebase-admin/auth");
 const buffer = require("buffer");
 if (!buffer.SlowBuffer) {
   buffer.SlowBuffer = buffer.Buffer;
@@ -10,7 +11,6 @@ const cors = require("cors");
 const multer = require("multer");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const admin = require("firebase-admin");
 const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
@@ -633,7 +633,7 @@ async function requireAdminAuth(req, res, next) {
     const token = authHeader.split(" ")[1];
     try {
       if (isFirebaseConfigured()) {
-        const decoded = await admin.auth().verifyIdToken(token);
+        const decoded = await getAuth().verifyIdToken(token);
         if (
           decoded.email &&
           (decoded.email.toLowerCase() === MAIN_ADMIN_EMAIL.toLowerCase() || decoded.admin === true)
@@ -697,7 +697,7 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
 
   try {
     if (isFirebaseConfigured() && uid) {
-      await admin.auth().setCustomUserClaims(uid, {
+      await getAuth().setCustomUserClaims(uid, {
         authorized: true,
         admin: isSuperAdmin,
       });
@@ -734,7 +734,7 @@ app.get("/authorized-users", authLimiter, requireAdminAuth, async (req, res) => 
   }
 
   try {
-    const listUsers = await admin.auth().listUsers();
+    const listUsers = await getAuth().listUsers();
     const authorizedUsers = listUsers.users
       .filter((user) => user.customClaims?.authorized || user.email === MAIN_ADMIN_EMAIL)
       .map((user) => ({
@@ -762,9 +762,9 @@ app.post("/grant-access", authLimiter, requireAdminAuth, async (req, res) => {
   }
 
   try {
-    const userToGrant = await admin.auth().getUserByEmail(userEmailToGrant);
+    const userToGrant = await getAuth().getUserByEmail(userEmailToGrant);
     const existingClaims = userToGrant.customClaims || {};
-    await admin.auth().setCustomUserClaims(userToGrant.uid, {
+    await getAuth().setCustomUserClaims(userToGrant.uid, {
       ...existingClaims,
       authorized: true,
     });
@@ -796,8 +796,8 @@ app.post("/revoke-access", authLimiter, requireAdminAuth, async (req, res) => {
   }
 
   try {
-    const userToRevoke = await admin.auth().getUserByEmail(userEmailToRevoke);
-    await admin.auth().setCustomUserClaims(userToRevoke.uid, {
+    const userToRevoke = await getAuth().getUserByEmail(userEmailToRevoke);
+    await getAuth().setCustomUserClaims(userToRevoke.uid, {
       authorized: false,
       admin: false,
     });
@@ -823,11 +823,11 @@ app.post("/toggle-admin", authLimiter, requireAdminAuth, async (req, res) => {
   }
 
   try {
-    const targetUser = await admin.auth().getUserByEmail(targetUserEmail);
+    const targetUser = await getAuth().getUserByEmail(targetUserEmail);
     const currentClaims = targetUser.customClaims || {};
     const newAdminStatus = !currentClaims.admin;
 
-    await admin.auth().setCustomUserClaims(targetUser.uid, {
+    await getAuth().setCustomUserClaims(targetUser.uid, {
       ...currentClaims,
       admin: newAdminStatus,
       authorized: true,
@@ -854,7 +854,7 @@ app.post("/setup-admin", authLimiter, requireAdminAuth, async (req, res) => {
   try {
     let targetUid = uid;
     if (!targetUid && targetEmail) {
-      const user = await admin.auth().getUserByEmail(targetEmail);
+      const user = await getAuth().getUserByEmail(targetEmail);
       targetUid = user.uid;
     }
 
@@ -862,7 +862,7 @@ app.post("/setup-admin", authLimiter, requireAdminAuth, async (req, res) => {
       return res.status(400).json({ error: "Provide either a valid email or uid" });
     }
 
-    await admin.auth().setCustomUserClaims(targetUid, {
+    await getAuth().setCustomUserClaims(targetUid, {
       admin: true,
       authorized: true,
     });
